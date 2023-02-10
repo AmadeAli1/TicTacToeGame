@@ -26,7 +26,7 @@ fun SplashScreen() {
         animate(
             initialValue = 0f,
             targetValue = 1f,
-            animationSpec = tween(200)
+            animationSpec = tween(2000)
         ) { value, _ ->
             graphicLayer = value
         }
