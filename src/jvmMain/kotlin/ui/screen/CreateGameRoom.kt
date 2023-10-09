@@ -1,10 +1,12 @@
 package ui.screen
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Gamepad
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,21 +17,36 @@ import androidx.compose.ui.window.Popup
 import model.state.GameRoomState
 import ui.navigation.MainNavigationController
 import ui.navigation.Screen
+import ui.theme.color200
 import ui.theme.firstCardColor
 import ui.viewModel.CreateRoomViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CreateGameRoom() {
     val viewModel = remember { CreateRoomViewModel() }
     val controller = remember { MainNavigationController }
     val uiState by viewModel.uiState.collectAsState()
-
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(key1 = uiState) {
         when (uiState) {
             is GameRoomState.Success -> {
                 val gameId = (uiState as GameRoomState.Success).gameId
                 controller.navigate(route = Screen.GameRoom(id = gameId))
+            }
+
+            is GameRoomState.Logger -> {
+                snackbarHostState.showSnackbar(
+                    (uiState as GameRoomState.Logger).message,
+                    duration = SnackbarDuration.Long
+                )
+            }
+
+            is GameRoomState.Failure -> {
+                snackbarHostState.showSnackbar(
+                    (uiState as GameRoomState.Failure).message,
+                    duration = SnackbarDuration.Long
+                )
             }
 
             else -> Unit
@@ -49,13 +66,26 @@ fun CreateGameRoom() {
                         text = "Create Game",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.SemiBold,
+                            color = color200
                         )
                     )
                 }
             },
             navigationIcon = {
-                IconButton(onClick = { controller.navigate(route = Screen.Home) }) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+
+                TooltipArea(tooltip = { Text("Menu") }) {
+                    Surface(
+                        onClick = { controller.navigate(route = Screen.Home) },
+                        shape = MaterialTheme.shapes.small,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier.size(70.dp)
+                            .padding(16.dp), color = firstCardColor
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu, contentDescription = null,
+                            tint = color200
+                        )
+                    }
                 }
             },
             colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -64,6 +94,17 @@ fun CreateGameRoom() {
                 )
             ),
         )
+    }, snackbarHost = {
+        SnackbarHost(snackbarHostState) {
+            Snackbar(
+                containerColor = firstCardColor,
+                contentColor = color200
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    Text(it.visuals.message)
+                }
+            }
+        }
     }) {
         Box(
             modifier = Modifier.fillMaxSize().padding(it),

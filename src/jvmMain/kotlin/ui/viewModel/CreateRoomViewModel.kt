@@ -4,13 +4,16 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import model.state.GameRoomState
 import repository.GameRepository
 import utils.ViewModel
 import validation.Validation
 import validation.ValidationState
+
 
 class CreateRoomViewModel constructor(
     private val validation: Validation = Validation,
@@ -25,6 +28,11 @@ class CreateRoomViewModel constructor(
 
     private val _uiState = MutableStateFlow<GameRoomState>(GameRoomState.None)
     val uiState = _uiState.asStateFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = GameRoomState.None
+        )
 
     fun onUsernameChange(username: String) {
         _username.value = username
@@ -50,6 +58,10 @@ class CreateRoomViewModel constructor(
                     },
                     onSuccess = {
                         viewModelScope.launch {
+                            _uiState.emit(
+                                value = GameRoomState.Logger("Create game room success")
+                            )
+                            delay(300)
                             _uiState.emit(
                                 value = GameRoomState.Success(it.gameId)
                             )

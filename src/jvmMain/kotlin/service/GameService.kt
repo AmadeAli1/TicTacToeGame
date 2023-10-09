@@ -3,6 +3,7 @@ package service
 import model.GameAction
 import model.GameState
 import model.Player
+import model.chat.Message
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -13,6 +14,10 @@ interface GameService {
 
     @GET("game/room/all")
     suspend fun findAll(): Response<List<GameState>>
+
+
+    @POST("game/room/matchmaking")
+    suspend fun matchmaking(@Body player: Player): Response<GameState>
 
     @POST("game/room/create")
     suspend fun createRoom(@Body player: Player): Response<GameState>
@@ -48,6 +53,7 @@ interface GameService {
         @Query("playerId") playerId: String,
     ): Response<Unit>
 
-
+    @POST("game/room/chat")
+    suspend fun sendMessage(@Body message: Message): Response<Unit>
 
 }

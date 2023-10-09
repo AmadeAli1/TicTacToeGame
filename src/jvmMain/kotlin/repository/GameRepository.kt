@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import model.GameAction
 import model.GameState
 import model.Player
+import model.chat.Message
 import retrofit2.create
 import service.GameService
 import utils.RetrofitInstance
@@ -39,7 +40,7 @@ object GameRepository {
     fun getGameStateFlow(gameId: String): Flow<GameState> {
         return flow {
             session = client.webSocketSession {
-                url("${Server.Deploy.websocket}/$gameId")
+                url("${Server.Localhost.websocket}/$gameId")
             }
             val gameState = session!!.incoming
                 .consumeAsFlow()
@@ -97,7 +98,9 @@ object GameRepository {
             }
         } catch (e: Exception) {
             e.message?.let {
-                if (it.startsWith("failed to connect").or(it.contains("timeout"))) {
+                if (it.startsWith("Failed to connect", ignoreCase = true)
+                        .or(it.contains("Timeout", ignoreCase = true))
+                ) {
                     onFailure("Check your network connection")
                 }
             }
@@ -105,16 +108,19 @@ object GameRepository {
         }
     }
 
-    suspend fun findAll(
+    suspend fun matchMaking(
         onLoading: () -> Unit,
-        onSuccess: (List<GameState>) -> Unit,
+        onSuccess: (GameState) -> Unit,
         onFailure: (String) -> Unit,
-    ) = withContext(Dispatchers.IO) {
-        return@withContext try {
+    ) {
+        try {
             onLoading()
-            val response = gameService.findAll()
+            val username = System.getProperties().getProperty("user.name") ?: "Unknown"
+            val response = gameService.matchmaking(player = Player(name = username))
             if (response.isSuccessful) {
-                onSuccess(response.body()!!)
+                val gameState = response.body()!!
+                _player.emit(gameState.player2)
+                onSuccess(gameState)
             } else {
                 response.toFailureMessage().also(onFailure)
             }
@@ -122,30 +128,8 @@ object GameRepository {
             e.message?.let {
                 if (it.startsWith("failed to connect").or(it.contains("timeout"))) {
                     onFailure("Check your network connection")
-                }
-            }
-            e.printStackTrace()
-        }
-    }
-
-    suspend fun findById(
-        gameId: String,
-        onLoading: () -> Unit,
-        onSuccess: (GameState) -> Unit,
-        onFailure: (String) -> Unit,
-    ) = withContext(Dispatchers.IO) {
-        try {
-            onLoading()
-            val response = gameService.findGameRoomById(gameId)
-            if (response.isSuccessful) {
-                onSuccess(response.body()!!)
-            } else {
-                response.toFailureMessage().also { onFailure(it) }
-            }
-        } catch (e: Exception) {
-            e.message?.let {
-                if (it.startsWith("failed to connect").or(it.contains("timeout"))) {
-                    onFailure("Check your network connection")
+                } else {
+                    onFailure(it)
                 }
             }
             e.printStackTrace()
@@ -173,7 +157,7 @@ object GameRepository {
             e.message?.let {
                 if (it.startsWith("failed to connect").or(it.contains("timeout"))) {
                     onFailure("Check your network connection")
-                }else{
+                } else {
                     onFailure(it)
                 }
             }
@@ -249,6 +233,19 @@ object GameRepository {
                 }
             }
             e.printStackTrace()
+        }
+    }
+
+
+    suspend fun sendMessage(roomId: String, message: String) {
+        withContext(Dispatchers.IO) {
+            gameService.sendMessage(
+                message = Message(
+                    from = player.value!!.id,
+                    roomId = roomId,
+                    message = message
+                )
+            )
         }
     }
 

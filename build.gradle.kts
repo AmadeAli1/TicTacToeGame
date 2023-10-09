@@ -24,12 +24,13 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                val ktorVersion = "2.2.3"
+                var ktorVersion = "2.2.3"
                 implementation(compose.desktop.currentOs)
                 implementation("com.squareup.retrofit2:retrofit:2.9.0")
                 implementation("com.squareup.retrofit2:converter-gson:2.9.0")
                 implementation("org.jetbrains.compose.material3:material3-desktop:1.3.0-rc01")
                 implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.3.0-rc01")
+
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("io.ktor:ktor-client-websockets:$ktorVersion")
@@ -48,6 +49,14 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "TicTacToeGame"
             packageVersion = "1.0.0"
+
+            includeAllModules = true
+            windows {
+                packageVersion = "1.0.0"
+                msiPackageVersion = "1.0.0"
+                exePackageVersion = "1.0.0"
+            }
+
         }
     }
 }

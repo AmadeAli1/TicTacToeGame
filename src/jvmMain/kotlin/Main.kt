@@ -17,7 +17,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         state = WindowState(placement = WindowPlacement.Maximized),
-        title = "TicTacToe", icon = painterResource("icon.png")
+        title = "TicTacToeGame", icon = painterResource("icon.png")
     ) {
         GameTheme {
             Surface(color = MaterialTheme.colorScheme.background) {

@@ -1,6 +1,7 @@
 package model
 
 import kotlinx.serialization.Serializable
+import model.chat.Message
 
 @Serializable
 data class GameState(
@@ -10,4 +11,5 @@ data class GameState(
     var roomState: RoomState,
     var matchState: MatchState? = null,
     val expiredTime: String? = null,
+    val messages: List<Message> = emptyList(),
 )

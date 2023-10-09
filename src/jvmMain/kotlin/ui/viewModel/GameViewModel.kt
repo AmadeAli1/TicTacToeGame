@@ -13,21 +13,34 @@ import utils.ViewModel
 class GameViewModel : ViewModel() {
     private val repository: GameRepository = GameRepository
     private val gameId = (MainNavigationController.screen.value as Screen.GameRoom).id
-    private val player = repository.player
+    val player = repository.player
 
     private val _roomState = MutableStateFlow(RoomState.Joining)
     val roomState = _roomState.asStateFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(15_000),
+            initialValue = RoomState.Joining
+        )
 
     private val _uiState = MutableStateFlow<UiState>(UiState.None)
     val uiState = _uiState.asStateFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(15_000),
+            initialValue = UiState.None
+        )
 
     val gameState = repository.getGameStateFlow(gameId).stateIn(
         scope = viewModelScope,
-        started = SharingStarted.Lazily,
+        started = SharingStarted.WhileSubscribed(30_000),
         initialValue = null
     ).onEach {
         if (it != null) {
             _roomState.emit(it.roomState)
+            if (it.roomState == RoomState.ExpiredSeason) {
+                repository.closeSession()
+            }
         }
     }
 
@@ -113,6 +126,12 @@ class GameViewModel : ViewModel() {
 
     fun getWinner(matchState: MatchState): Player {
         return matchState.wonGames.last().player
+    }
+
+    fun sendMessage(message: String) {
+        viewModelScope.launch {
+            repository.sendMessage(gameId,message)
+        }
     }
 
 }

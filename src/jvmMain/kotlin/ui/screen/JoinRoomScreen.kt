@@ -1,9 +1,12 @@
 package ui.screen
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.NavigateNext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,10 +18,11 @@ import androidx.compose.ui.window.Popup
 import model.state.GameRoomState
 import ui.navigation.MainNavigationController
 import ui.navigation.Screen
+import ui.theme.color200
 import ui.theme.firstCardColor
 import ui.viewModel.JoinGameRoomViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun JoinRoomScreen() {
     val viewModel = remember { JoinGameRoomViewModel() }
@@ -49,13 +53,25 @@ fun JoinRoomScreen() {
                         text = "Join a game",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.SemiBold,
+                            color = color200
                         )
                     )
                 }
             },
             navigationIcon = {
-                IconButton(onClick = { controller.navigate(route = Screen.Home) }) {
-                    Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                TooltipArea(tooltip = { Text("Menu") }) {
+                    Surface(
+                        onClick = { controller.navigate(route = Screen.Home) },
+                        shape = MaterialTheme.shapes.small,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier.size(70.dp)
+                            .padding(16.dp), color = firstCardColor
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Menu, contentDescription = null,
+                            tint = color200
+                        )
+                    }
                 }
             },
             colors = TopAppBarDefaults.smallTopAppBarColors(

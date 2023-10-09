@@ -1,9 +1,11 @@
 package ui.screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,10 +17,12 @@ import model.state.OfflineGameState
 import ui.navigation.MainNavigationController
 import ui.navigation.Screen
 import ui.theme.Pink40
+import ui.theme.color200
+import ui.theme.firstCardColor
 import ui.theme.mainColor
 import ui.viewModel.OfflineGameViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun OfflineGameScreen() {
     val controller = remember { MainNavigationController }
@@ -45,8 +49,19 @@ fun OfflineGameScreen() {
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = { controller.navigate(route = Screen.Home) }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                    TooltipArea(tooltip = { Text("Menu") }) {
+                        Surface(
+                            onClick = { controller.navigate(route = Screen.Home) },
+                            shape = MaterialTheme.shapes.small,
+                            shadowElevation = 4.dp,
+                            modifier = Modifier.size(70.dp)
+                                .padding(16.dp), color = firstCardColor
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Menu, contentDescription = null,
+                                tint = color200
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -64,18 +79,25 @@ fun OfflineGameScreen() {
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .padding(it),
+            contentAlignment = Alignment.Center
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.34f)
-                    .padding(it)
+                    .fillMaxWidth(0.5f)
             ) {
 
-                Box(modifier = Modifier.padding(vertical = 16.dp).align(Alignment.TopCenter)) {
+                Box(
+                    modifier = Modifier.padding(vertical = 16.dp)
+                        .align(Alignment.TopCenter)
+                ) {
                     TopBar(
-                        player1 = gameState.player1Details.value.player,
-                        player2 = gameState.player2Details.value.player
+                        player1 = gameState.player1Details.value,
+                        player2 = gameState.player2Details.value,
+                        modifier = Modifier.fillMaxWidth(0.5f)
                     )
                 }
 
